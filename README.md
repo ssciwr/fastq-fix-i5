@@ -22,7 +22,7 @@ platforms (e.g. Illumina and AVITI) where i5 orientation conventions differ.
 
 ## Installation
 
-Download a pre-compiled binary for your platform.
+Download a pre-compiled binary for your platform from the [latest release](https://github.com/ssciwr/fastq-fix-i5/releases/latest).
 
 ## Use
 
