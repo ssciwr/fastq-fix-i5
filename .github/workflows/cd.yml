@@ -17,8 +17,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            exe: ""
+          - os: macos-latest
+            platform: macos
+            exe: ""
+          - os: windows-latest
+            platform: windows
+            exe: ".exe"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -35,14 +43,18 @@ jobs:
       - name: Test
         run: cargo test --verbose
 
-      - run: ls -la target/release/
+      - run: ls target/release/
+
+      - run: mv target/release/fastq-fix-i5${{ matrix.exe }} fastq-fix-i5-${{ matrix.platform }}${{ matrix.exe }}
+
+      - run: ls
 
       - name: Upload binary to tagged release
         if: startsWith(github.event.ref, 'refs/tags/')
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: vstt-windows-installer.exe
+          file: fastq-fix-i5-${{ matrix.platform }}${{ matrix.exe }}
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
