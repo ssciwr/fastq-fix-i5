@@ -9,7 +9,7 @@ authors = ["Liam Keegan <liam@keegan.ch>"]
 keywords = ["fastq", "bioinformatics", "illumina", "sequencing"]
 categories = ["command-line-utilities", "science"]
 edition = "2021"
-rust-version = "1.74"
+rust-version = "1.77"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
