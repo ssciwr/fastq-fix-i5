@@ -5,8 +5,10 @@ edition = "2021"
 license = "MIT"
 description = "Rewrite FASTQ headers by reverse-complementing only the i5 (P5/index2) part in ...:i7+i5"
 repository = "https://example.invalid/replace-me"
+authors = ["Liam Keegan <liam@keegan.ch>"]
 
 [dependencies]
+clap = { version = "4", features = ["derive"] }
 memchr = "2"
 
 [dev-dependencies]

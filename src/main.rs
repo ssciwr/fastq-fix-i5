@@ -1,9 +1,19 @@
 use memchr::{memchr, memrchr};
 use std::io::{self, BufRead, Read, Write};
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(
+    name = "fastq-i5-rc",
+    version,
+    about = "Rewrites FASTQ headers by reverse-complementing the i5 (Index2 / P5) barcode",
+    long_about = "A fast, streaming tool to rewrite FASTQ headers by reverse-complementing the i5 (Index2 / P5) barcode, without modifying read sequences or quality scores. Headers are expected to end with the standard Illumina `:<i7>+<i5>` format."
+)]
+struct Args {}
 
 /// Return the complement of a DNA base (A,C,G,T,N), preserving case.
 #[inline(always)]
-fn complement_base(b: u8) -> u8 {
+const fn complement_base(b: u8) -> u8 {
     // Handles A,C,G,T,N (upper/lower). Leaves other bytes unchanged.
     match b {
         b'A' => b'T',
@@ -55,9 +65,9 @@ fn rewrite_header_i5(header: &mut Vec<u8>) -> bool {
         return false;
     };
     let after_plus_index = after_colon_index + relative_plus_index + 1;
-    let stop_h5_index = header.len() - 1; // exclude final '\n'
 
     // i5 header is everything after '+' excluding the final newline character
+    let stop_h5_index = header.len() - 1; // exclude final '\n'
     let i5 = &mut header[after_plus_index..stop_h5_index];
     reverse_complement_in_place(i5);
     true
@@ -92,15 +102,16 @@ fn read_line<R: Read>(reader: &mut io::BufReader<R>, line: &mut Vec<u8>) -> io::
 }
 
 fn main() -> io::Result<()> {
-    let buf_size = 16 * 1024; // 64 kB buffer for I/O
+    let _args = Args::parse();
+    const IO_BUFFER_BYTES: usize = 64 * 1024; // 64 kB buffer for I/O
     let stdin = io::stdin();
-    let mut input = io::BufReader::with_capacity(buf_size, stdin.lock());
+    let mut input = io::BufReader::with_capacity(IO_BUFFER_BYTES, stdin.lock());
     let stdout = io::stdout();
-    let mut output = io::BufWriter::with_capacity(buf_size, stdout.lock());
+    let mut output = io::BufWriter::with_capacity(IO_BUFFER_BYTES, stdout.lock());
 
-    // Buffer for a FASTQ record line (a read is 4 lines where the first line is the header)
-    let mut line = Vec::<u8>::with_capacity(256);
-    let n_lines_per_record = 4;
+    // Buffer for a FASTQ record line (a record is 4 lines where the first line is the header)
+    let mut line = Vec::<u8>::with_capacity(1);
+    const N_LINES_PER_RECORD: usize = 4;
 
     loop {
         // rewrite header line
@@ -111,7 +122,7 @@ fn main() -> io::Result<()> {
         output.write_all(&line)?;
 
         // copy remaining lines of the FASTQ record unchanged
-        for _ in 1..n_lines_per_record {
+        for _ in 1..N_LINES_PER_RECORD {
             if read_line(&mut input, &mut line)? == 0 {
                 return Err(io::Error::new(
                     io::ErrorKind::UnexpectedEof,

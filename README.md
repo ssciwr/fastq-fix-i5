@@ -4,8 +4,11 @@ A fast, streaming tool to **rewrite FASTQ headers by
 reverse-complementing the i5 (Index2 / P5) barcode**,
 without modifying read sequences or quality scores.
 
-This is useful when mixing FASTQs from different sequencing
-platforms (e.g. Illumina and AVITI), where **i5 orientation conventions differ**.
+Headers are expected to end with the standard Illumina
+`:<i7>+<i5>` format.
+
+This tool can be useful when mixing FASTQs from different sequencing
+platforms (e.g. Illumina and AVITI) where i5 orientation conventions differ.
 
 ## What this tool does
 
@@ -19,12 +22,7 @@ platforms (e.g. Illumina and AVITI), where **i5 orientation conventions differ**
 
 ## Installation
 
-In the future this tool may be available on bio-conda, but for now you need
-to compile it from source.
-
-```
-cargo build --release
-```
+Download a pre-compiled binary for your platform.
 
 ## Use
 
@@ -34,7 +32,7 @@ To run `fastq-fix-i5`, simply pipe your FASTQ data into it:
 fastq-fix-i5 < input.fastq > output.fastq
 ```
 
-If your input FASTQ is compressed, you can use `pigz` to
+If your input FASTQ is compressed, on linux you can use `pigz` to
 stream the data through `fastq-fix-i5`:
 
 ```bash
