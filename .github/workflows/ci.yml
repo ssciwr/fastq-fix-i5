@@ -35,25 +35,32 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
 
   msrv:
-    name: test (MSRV, ubuntu)
+    name: coverage (MSRV, ubuntu)
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Set up Rust (MSRV)
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.82
+        uses: dtolnay/rust-toolchain@1.82
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Build
-        run: cargo build --verbose
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: Test
-        run: cargo test --verbose
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          fail_ci_if_error: true
+          use_oidc: true
 
   test:
     name: test (stable, ${{ matrix.os }})
@@ -72,9 +79,6 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
-
-      - name: Build (release)
-        run: cargo build --release --verbose
 
       - name: Test
         run: cargo test --verbose

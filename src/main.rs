@@ -116,6 +116,8 @@ fn read_line<R: Read>(reader: &mut io::BufReader<R>, line: &mut Vec<u8>) -> io::
     }
 }
 
+/// Read FASTQ records from stdin, rewrite headers by reverse-complementing the i5 barcodes,
+/// and write modified records to stdout.
 fn main() -> io::Result<()> {
     let _args = Args::parse();
     const IO_BUFFER_BYTES: usize = 64 * 1024; // 64 kB buffer for I/O
@@ -125,7 +127,7 @@ fn main() -> io::Result<()> {
     let mut output = io::BufWriter::with_capacity(IO_BUFFER_BYTES, stdout.lock());
 
     // Buffer for a FASTQ record line (a record is 4 lines where the first line is the header)
-    let mut line = Vec::<u8>::with_capacity(1);
+    let mut line = Vec::<u8>::with_capacity(1024);
     const N_LINES_PER_RECORD: usize = 4;
 
     loop {
@@ -198,6 +200,12 @@ mod tests {
             String::from_utf8_lossy(input),
             String::from_utf8_lossy(&header),
             String::from_utf8_lossy(expected),
+        );
+        // apply again to recover original input
+        rewrite_header_i5(&mut header)?;
+        assert_eq!(
+            String::from_utf8_lossy(&header),
+            String::from_utf8_lossy(input),
         );
         Ok(())
     }

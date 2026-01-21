@@ -25,6 +25,11 @@ TGCA\n\
         .assert()
         .success()
         .stdout(&expected[..]);
+    // piping the output in again should recover the original input
+    cmd.write_stdin(expected)
+        .assert()
+        .success()
+        .stdout(&input[..]);
 }
 
 #[test]
