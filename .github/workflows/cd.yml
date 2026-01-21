@@ -43,8 +43,8 @@ jobs:
       - name: Build (release)
         run: cargo build --release --verbose
 
-      - name: Test
-        run: cargo test --verbose
+      - name: Test (release)
+        run: cargo test --release --verbose
 
       - name: Rename binary
         run: mv target/release/fastq-fix-i5${{ matrix.exe }} fastq-fix-i5-${{ matrix.platform }}${{ matrix.exe }}
