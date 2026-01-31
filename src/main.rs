@@ -126,28 +126,44 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout();
     let mut output = io::BufWriter::with_capacity(IO_BUFFER_BYTES, stdout.lock());
 
-    // Buffer for a FASTQ record line (a record is 4 lines where the first line is the header)
-    let mut line = Vec::<u8>::with_capacity(1024);
-    const N_LINES_PER_RECORD: usize = 4;
+    // Buffers for a FASTQ record line (a record is 4 lines where the first line is the header)
+    let mut header = Vec::<u8>::with_capacity(1024);
+    let mut sequence = Vec::<u8>::with_capacity(1024);
+    let mut plus = Vec::<u8>::with_capacity(1024);
+    let mut quality = Vec::<u8>::with_capacity(1024);
 
     loop {
         // rewrite header line
-        if read_line(&mut input, &mut line)? == 0 {
+        if read_line(&mut input, &mut header)? == 0 {
             break; // no header: EOF
         }
-        rewrite_header_i5(&mut line)?;
-        output.write_all(&line)?;
+        rewrite_header_i5(&mut header)?;
+        output.write_all(&header)?;
 
         // copy remaining lines of the FASTQ record unchanged
-        for _ in 1..N_LINES_PER_RECORD {
-            if read_line(&mut input, &mut line)? == 0 {
-                return Err(io::Error::new(
-                    io::ErrorKind::UnexpectedEof,
-                    "truncated FASTQ record (expected 4 lines)",
-                ));
-            }
-            output.write_all(&line)?;
+        if read_line(&mut input, &mut sequence)? == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "truncated FASTQ record (expected 4 lines)",
+            ));
         }
+        output.write_all(&sequence)?;
+
+        if read_line(&mut input, &mut plus)? == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "truncated FASTQ record (expected 4 lines)",
+            ));
+        }
+        output.write_all(&plus)?;
+
+        if read_line(&mut input, &mut quality)? == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "truncated FASTQ record (expected 4 lines)",
+            ));
+        }
+        output.write_all(&quality)?;
     }
 
     output.flush()?;
